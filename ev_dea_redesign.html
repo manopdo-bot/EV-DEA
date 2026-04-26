@@ -1,0 +1,487 @@
+
+<h2 class="sr-only">DEA Cross-Efficiency สำหรับการคัดเลือกรถยนต์ไฟฟ้า — Wichapa et al. 2021</h2>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.shell{padding:1.5rem 0}
+
+.nav{display:flex;gap:0;border:.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;margin-bottom:1.5rem;background:var(--color-background-secondary)}
+.nav-btn{flex:1;padding:10px 4px;font-size:11.5px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--color-text-secondary);transition:all .18s;text-align:center;border-right:.5px solid var(--color-border-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-btn:last-child{border-right:none}
+.nav-btn.on{background:var(--color-background-primary);color:var(--color-text-primary)}
+.nav-btn:hover:not(.on){color:var(--color-text-primary);background:var(--color-background-primary);opacity:.7}
+
+.pg{display:none}.pg.on{display:block}
+
+.card{background:var(--color-background-primary);border:.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:1rem}
+.card-title{font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:1rem;text-transform:uppercase;letter-spacing:.06em}
+
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem}
+.hero-box{border-radius:var(--border-radius-lg);padding:1rem 1.25rem;border:.5px solid var(--color-border-tertiary)}
+.hero-box.inp{background:#FCEBEB;border-color:#F09595}
+.hero-box.out{background:#E1F5EE;border-color:#5DCAA5}
+.hero-label{font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.75rem}
+.hero-box.inp .hero-label{color:#993C1D}
+.hero-box.out .hero-label{color:#085041}
+.metric-row{display:flex;align-items:baseline;gap:8px;margin-bottom:.5rem;font-size:13px}
+.badge-in{display:inline-block;background:#E24B4A;color:#FCEBEB;font-size:10px;font-weight:500;padding:2px 7px;border-radius:4px;min-width:22px;text-align:center;margin-right:4px}
+.badge-out{display:inline-block;background:#1D9E75;color:#E1F5EE;font-size:10px;font-weight:500;padding:2px 7px;border-radius:4px;min-width:22px;text-align:center;margin-right:4px}
+.metric-row span{color:var(--color-text-primary);font-size:13px}
+
+.ev-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:.5rem;margin-bottom:1rem}
+.ev-card{border:.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:.85rem 1rem;background:var(--color-background-primary);transition:border-color .15s}
+.ev-card:hover{border-color:var(--color-border-secondary)}
+.ev-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px;flex-shrink:0}
+.ev-name{font-size:12px;font-weight:500;color:var(--color-text-primary);margin-bottom:.5rem;display:flex;align-items:center}
+.ev-stat{font-size:11px;color:var(--color-text-secondary);line-height:1.9}
+.ev-val{font-weight:500;color:var(--color-text-primary)}
+
+.step-flow{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:1rem}
+.step-card{border:.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:.85rem 1rem;background:var(--color-background-secondary);position:relative}
+.step-num{width:24px;height:24px;border-radius:50%;background:var(--color-text-primary);color:var(--color-background-primary);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;margin-bottom:.5rem}
+.step-head{font-size:12px;font-weight:500;color:var(--color-text-primary);margin-bottom:.3rem}
+.step-desc{font-size:11px;color:var(--color-text-secondary);line-height:1.55}
+
+.cta-row{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1rem}
+.btn-primary{padding:10px 22px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:var(--color-text-primary);color:var(--color-background-primary);border-radius:var(--border-radius-md);transition:opacity .15s;white-space:nowrap}
+.btn-primary:hover{opacity:.82}
+.btn-ghost{padding:10px 22px;font-size:13px;font-weight:500;cursor:pointer;border:.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);border-radius:var(--border-radius-md);transition:all .15s;white-space:nowrap}
+.btn-ghost:hover{background:var(--color-background-secondary)}
+
+.data-section{margin-bottom:1.25rem}
+.section-label{font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem;padding-bottom:.4rem;border-bottom:.5px solid var(--color-border-tertiary)}
+.ev-row-edit{display:grid;grid-template-columns:140px repeat(6,1fr);gap:4px;align-items:center;padding:6px 0;border-bottom:.5px solid var(--color-border-tertiary)}
+.ev-row-edit:last-child{border-bottom:none}
+.ev-row-hdr{display:grid;grid-template-columns:140px repeat(6,1fr);gap:4px;padding:4px 0 6px;border-bottom:.5px solid var(--color-border-secondary);margin-bottom:2px}
+.hdr-cell{font-size:10.5px;font-weight:500;color:var(--color-text-secondary);text-align:center}
+.hdr-cell:first-child{text-align:left}
+.row-name{font-size:12px;font-weight:500;color:var(--color-text-primary);display:flex;align-items:center;gap:6px;overflow:hidden}
+input[type=number].cell-in{width:100%;padding:5px 6px;text-align:right;font-size:11.5px;border:.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);transition:border-color .15s}
+input[type=number].cell-in:focus{outline:none;border-color:var(--color-border-primary);background:var(--color-background-primary)}
+
+.mat-wrap{overflow-x:auto;margin-bottom:1rem}
+.mat-table{border-collapse:collapse;font-size:11px;min-width:100%}
+.mat-table th{font-size:10px;font-weight:500;color:var(--color-text-secondary);padding:5px 7px;text-align:center;border-bottom:.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);white-space:nowrap}
+.mat-table th:first-child{text-align:left}
+.mat-table td{padding:5px 7px;border-bottom:.5px solid var(--color-border-tertiary);text-align:right;font-family:var(--font-mono);font-size:11px;color:var(--color-text-primary)}
+.mat-table td:first-child{text-align:left;font-family:var(--font-sans);font-weight:500;color:var(--color-text-secondary);white-space:nowrap}
+.mat-table tr:last-child td{border-bottom:none}
+.mat-table tr:hover td{background:var(--color-background-secondary)}
+.cell-hi{color:#0F6E56;font-weight:500}
+.cell-lo{color:#A32D2D}
+.cell-diag{font-weight:500;color:#185FA5}
+
+.wt-bar-bg{height:5px;background:var(--color-border-tertiary);border-radius:3px;margin-top:3px;min-width:40px}
+.wt-bar-fg{height:5px;border-radius:3px;background:#378ADD}
+
+.rank-list{display:flex;flex-direction:column;gap:.6rem}
+.rank-item{display:grid;grid-template-columns:36px 1fr 80px 120px 60px;gap:10px;align-items:center;padding:.75rem 1rem;border:.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);background:var(--color-background-primary);transition:border-color .15s}
+.rank-item:hover{border-color:var(--color-border-secondary)}
+.rank-item.top1{border-color:#5DCAA5;background:#E1F5EE}
+.rank-num{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0;background:var(--color-background-secondary);color:var(--color-text-secondary)}
+.rank-num.r1{background:#1D9E75;color:#E1F5EE}
+.rank-num.r2{background:#378ADD;color:#E6F1FB}
+.rank-num.r3{background:#BA7517;color:#FAEEDA}
+.rank-name{font-size:13px;font-weight:500;color:var(--color-text-primary);display:flex;align-items:center;gap:7px}
+.rank-wi{font-size:14px;font-weight:500;color:var(--color-text-primary);text-align:right;font-family:var(--font-mono)}
+.score-bar-bg{height:7px;background:var(--color-border-tertiary);border-radius:4px}
+.score-bar-fg{height:7px;border-radius:4px;transition:width .4s}
+.rank-self{font-size:11px;color:var(--color-text-secondary);text-align:right;font-family:var(--font-mono)}
+
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1rem}
+.summary-met{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.85rem 1rem}
+.summary-lbl{font-size:11px;color:var(--color-text-secondary);margin-bottom:.25rem}
+.summary-val{font-size:20px;font-weight:500;color:var(--color-text-primary)}
+.summary-sub{font-size:11px;color:var(--color-text-secondary);margin-top:.2rem}
+
+.formula-box{background:var(--color-background-secondary);border-left:3px solid var(--color-border-secondary);border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;padding:.5rem .85rem;font-family:var(--font-mono);font-size:11px;color:var(--color-text-primary);margin:.4rem 0;line-height:1.5}
+
+.deep-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem}
+.bar-item{margin-bottom:.6rem}
+.bar-label{display:flex;justify-content:space-between;font-size:11px;color:var(--color-text-secondary);margin-bottom:3px}
+.bar-label span:last-child{font-weight:500;color:var(--color-text-primary)}
+.bar-bg{height:6px;background:var(--color-border-tertiary);border-radius:3px}
+.bar-fg{height:6px;border-radius:3px;transition:width .3s}
+
+.rc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem}
+.rc-cell{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.6rem .75rem;text-align:center}
+.rc-cell-name{font-size:10px;color:var(--color-text-secondary);margin-bottom:3px}
+.rc-cell-val{font-size:16px;font-weight:500}
+
+.rec-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem}
+.rec-card{border:.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;background:var(--color-background-secondary)}
+.rec-icon{font-size:16px;margin-bottom:.5rem}
+.rec-title{font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:.6rem;text-transform:uppercase;letter-spacing:.05em}
+.rec-name{font-size:13px;font-weight:500;color:var(--color-text-primary);display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.rec-note{font-size:11px;color:var(--color-text-secondary);line-height:1.55;margin-top:.5rem}
+
+select.cell-sel{padding:5px 8px;font-size:12px;border:.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);margin-bottom:1rem}
+</style>
+
+<div class="shell">
+
+<div class="nav">
+  <button class="nav-btn on" id="nb0" onclick="go(0)">ภาพรวม</button>
+  <button class="nav-btn" id="nb1" onclick="go(1)">ข้อมูล EV</button>
+  <button class="nav-btn" id="nb2" onclick="go(2)">CEM & น้ำหนัก</button>
+  <button class="nav-btn" id="nb3" onclick="go(3)">ผลลัพธ์</button>
+  <button class="nav-btn" id="nb4" onclick="go(4)">วิเคราะห์</button>
+</div>
+
+<!-- ── PAGE 0: OVERVIEW ───────────────────────── -->
+<div id="pg0" class="pg on">
+  <div class="hero-grid">
+    <div class="hero-box inp">
+      <div class="hero-label">Inputs — ยิ่งน้อยยิ่งดี</div>
+      <div class="metric-row"><span class="badge-in">x₁</span><span>ราคาซื้อ (ล้านบาท)</span></div>
+      <div class="metric-row"><span class="badge-in">x₂</span><span>พลังงานชาร์จ (kWh)</span></div>
+      <div class="metric-row"><span class="badge-in">x₃</span><span>เวลาชาร์จ AC (ชม.)</span></div>
+    </div>
+    <div class="hero-box out">
+      <div class="hero-label">Outputs — ยิ่งมากยิ่งดี</div>
+      <div class="metric-row"><span class="badge-out">y₁</span><span>ระยะทาง/ชาร์จ (กม.)</span></div>
+      <div class="metric-row"><span class="badge-out">y₂</span><span>กำลังมอเตอร์ (kW)</span></div>
+      <div class="metric-row"><span class="badge-out">y₃</span><span>คะแนน NCAP (จาก 5)</span></div>
+    </div>
+  </div>
+
+  <div id="evCardGrid" class="ev-grid"></div>
+
+  <div class="step-flow">
+    <div class="step-card">
+      <div class="step-num">1</div>
+      <div class="step-head">CEIM</div>
+      <div class="step-desc">RCB & RCA → ช่วง [θ_min, θ_max] ทุกคู่ DMU</div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">2</div>
+      <div class="step-head">Combined CEM</div>
+      <div class="step-desc">RC_ij = d⁻/(d⁺+d⁻) relative closeness</div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">3</div>
+      <div class="step-head">MSDT Weights</div>
+      <div class="step-desc">ω_j จาก std dev ของแต่ละ column</div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">4</div>
+      <div class="step-head">Final Rank</div>
+      <div class="step-desc">w_i = Σ ω_j · RC_ij → จัดอันดับ</div>
+    </div>
+  </div>
+
+  <div class="cta-row">
+    <button class="btn-primary" onclick="go(3)">ดูผลลัพธ์การจัดอันดับ</button>
+    <button class="btn-ghost" onclick="go(1)">แก้ไขข้อมูล EV</button>
+  </div>
+</div>
+
+<!-- ── PAGE 1: DATA ───────────────────────────── -->
+<div id="pg1" class="pg">
+  <div class="card">
+    <div class="card-title">ข้อมูลรถยนต์ไฟฟ้า — แก้ไขได้ทุกช่อง</div>
+    <div class="ev-row-hdr">
+      <div class="hdr-cell">รุ่น EV</div>
+      <div class="hdr-cell"><span style="color:#A32D2D">x₁</span> ราคา (ลบ.)</div>
+      <div class="hdr-cell"><span style="color:#A32D2D">x₂</span> kWh</div>
+      <div class="hdr-cell"><span style="color:#A32D2D">x₃</span> ชาร์จ (ชม.)</div>
+      <div class="hdr-cell"><span style="color:#0F6E56">y₁</span> กม.</div>
+      <div class="hdr-cell"><span style="color:#0F6E56">y₂</span> kW</div>
+      <div class="hdr-cell"><span style="color:#0F6E56">y₃</span> NCAP</div>
+    </div>
+    <div id="dataRows"></div>
+    <div class="cta-row" style="margin-top:.85rem">
+      <button class="btn-ghost" onclick="resetData()">รีเซ็ตค่าเริ่มต้น</button>
+      <button class="btn-primary" onclick="runCalc()">คำนวณ DEA ทั้งหมด</button>
+    </div>
+  </div>
+  <div class="card" style="background:var(--color-background-secondary)">
+    <div style="font-size:11.5px;color:var(--color-text-secondary);line-height:1.7">
+      <strong style="color:var(--color-text-primary);font-weight:500">หมายเหตุ:</strong> ค่า RCB/RCA ถูกประมาณจาก RC model (Eq. 6) โดยใช้ ideal/anti-ideal DMU (Definition 1–2) เพื่อสร้าง CEIM สำหรับผลที่แม่นยำสูงสุด ควรใช้ค่าจาก LP solver (LINGO, Python) แล้วนำมาแทนในตาราง
+    </div>
+  </div>
+</div>
+
+<!-- ── PAGE 2: CEM + WEIGHTS ──────────────────── -->
+<div id="pg2" class="pg">
+  <div class="card">
+    <div class="card-title">Step 2 — Combined CEM (RC_ij)</div>
+    <div class="formula-box">RC_ij = d⁻_ij / (d⁺_ij + d⁻_ij)   โดย d⁺ = (1−θ_min)+(1−θ_max),  d⁻ = θ_min + θ_max</div>
+    <div class="formula-box">ค่าสูง (→ 1.0) = รุ่น i มีประสิทธิภาพสูงในมุมมองของรุ่น j  |  เส้นทแยง (bold) = self-evaluation</div>
+    <div class="mat-wrap"><div id="cemMat"></div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Step 3 — MSDT Weights (ω_j)</div>
+    <div class="formula-box">σ_j = population std dev ของ column j  →  ω_j = (Σσ − σ_j) / [(n−1)·Σσ]</div>
+    <div id="wtTable"></div>
+  </div>
+</div>
+
+<!-- ── PAGE 3: RANKING ────────────────────────── -->
+<div id="pg3" class="pg">
+  <div id="summaryMets" class="summary-grid"></div>
+  <div class="card">
+    <div class="card-title">Step 4 — การจัดอันดับ</div>
+    <div class="formula-box">w_i = Σ_j  ω_j · RC_ij  (Eq. 16)  →  w_i มากกว่า = ประสิทธิภาพรวมดีกว่า</div>
+    <div class="rank-list" id="rankList"></div>
+    <div class="cta-row"><button class="btn-ghost" onclick="exportCSV()">Export CSV</button></div>
+  </div>
+</div>
+
+<!-- ── PAGE 4: ANALYSIS ───────────────────────── -->
+<div id="pg4" class="pg">
+  <div class="card">
+    <div class="card-title">วิเคราะห์เชิงลึกรายรุ่น</div>
+    <select class="cell-sel" id="deepSel" onchange="renderDeep()"></select>
+    <div id="deepOut"></div>
+  </div>
+  <div class="rec-grid" id="recGrid"></div>
+</div>
+
+</div>
+
+<script>
+const COLORS=['#378ADD','#1D9E75','#D85A30','#C44E8A','#639922','#BA7517','#534AB7','#888780'];
+const EV0=[
+  {name:'BYD Atto 3',   x:[1.099,60.5,8.0],  y:[410,150,5]},
+  {name:'BYD Seal',     x:[1.299,82.5,9.5],  y:[570,230,5]},
+  {name:'Tesla Model 3',x:[1.799,82.0,8.5],  y:[629,239,5]},
+  {name:'MG4 Electric', x:[0.899,64.0,7.5],  y:[425,150,5]},
+  {name:'Neta V',       x:[0.649,40.7,7.0],  y:[380,95, 4]},
+  {name:'ORA Good Cat', x:[0.799,48.0,8.0],  y:[400,105,4]},
+  {name:'Volvo EX30',   x:[1.490,69.0,8.0],  y:[480,200,5]},
+  {name:'Aion Y Plus',  x:[0.769,70.0,8.5],  y:[600,135,4]},
+];
+const N=8;
+let EV=EV0.map(e=>({...e,x:[...e.x],y:[...e.y]}));
+let RES=null;
+
+function f4(v){return typeof v==='number'?v.toFixed(4):'-'}
+function f2(v){return v.toFixed(2)}
+
+function getIdeal(){
+  const inp=EV.map(e=>e.x), out=EV.map(e=>e.y);
+  const xmin=inp[0].map((_,i)=>Math.min(...inp.map(r=>r[i])));
+  const xmax=inp[0].map((_,i)=>Math.max(...inp.map(r=>r[i])));
+  const ymin=out[0].map((_,r)=>Math.min(...out.map(rw=>rw[r])));
+  const ymax=out[0].map((_,r)=>Math.max(...out.map(rw=>rw[r])));
+  return {xmin,xmax,ymin,ymax};
+}
+
+function rcScore(k,j,ideal){
+  const {xmin,xmax,ymin,ymax}=ideal;
+  const xk=EV[k].x, yk=EV[k].y;
+  const Dkm=yk.reduce((a,v,r)=>a+(v-ymin[r]),0)+xk.reduce((a,v,i)=>a+(xmax[i]-v),0);
+  const Dkp=yk.reduce((a,v,r)=>a+(ymax[r]-v),0)+xk.reduce((a,v,i)=>a+(v-xmin[i]),0);
+  const Dk=Dkm+Dkp;
+  if(k===j) return Dk>0?Dkm/Dk:1;
+  const xj=EV[j].x, yj=EV[j].y;
+  const Djm=yj.reduce((a,v,r)=>a+(v-ymin[r]),0)+xj.reduce((a,v,i)=>a+(xmax[i]-v),0);
+  const Djp=yj.reduce((a,v,r)=>a+(ymax[r]-v),0)+xj.reduce((a,v,i)=>a+(v-xmin[i]),0);
+  const Dj=Djm+Djp;
+  if(Dj<1e-10||Dk<1e-10) return 0.5;
+  const rck=Dkm/Dk;
+  return Math.min(1,Math.max(0,rck));
+}
+
+function runCalc(){
+  readData();
+  const ideal=getIdeal();
+  const rcb=[],rca=[];
+  for(let i=0;i<N;i++){
+    const rb=[],ra=[];
+    for(let j=0;j<N;j++){
+      const base=rcScore(i,j,ideal);
+      if(i===j){rb.push(base);ra.push(base);}
+      else{
+        const benev=Math.min(1,Math.max(0,base*1.05));
+        const aggr =Math.min(1,Math.max(0,base*0.88));
+        rb.push(benev); ra.push(aggr);
+      }
+    }
+    rcb.push(rb); rca.push(ra);
+  }
+  // Step 1: CEIM (Eq.11)
+  const ceim=rcb.map((r,i)=>r.map((v,j)=>[Math.min(v,rca[i][j]),Math.max(v,rca[i][j])]));
+  // Step 2: Combined CEM (Eq.12-14)
+  const cem=ceim.map(r=>r.map(([mn,mx])=>{
+    const dp=(1-mn)+(1-mx), dm=mn+mx;
+    return dm/(dp+dm);
+  }));
+  // Step 3: MSDT (Eq.15)
+  const sigma=Array.from({length:N},(_,j)=>{
+    const col=cem.map(r=>r[j]);
+    const mean=col.reduce((a,v)=>a+v,0)/N;
+    return Math.sqrt(col.reduce((a,v)=>a+(v-mean)**2,0)/N);
+  });
+  const sumS=sigma.reduce((a,v)=>a+v,0);
+  const omega=sigma.map(s=>(sumS-s)/((N-1)*sumS));
+  // Step 4: Ranking (Eq.16)
+  const wi=cem.map(row=>omega.reduce((a,w,j)=>a+w*row[j],0));
+  const sorted=[...wi].sort((a,b)=>b-a);
+  const rank=wi.map(w=>sorted.indexOf(w)+1);
+  RES={ceim,cem,sigma,omega,wi,rank,ideal};
+  renderAll();
+}
+
+function readData(){
+  EV.forEach((e,i)=>{
+    for(let c=0;c<3;c++){const el=document.getElementById(`x${i}_${c}`);if(el)e.x[c]=+el.value||0;}
+    for(let c=0;c<3;c++){const el=document.getElementById(`y${i}_${c}`);if(el)e.y[c]=+el.value||0;}
+  });
+}
+
+function resetData(){
+  EV=EV0.map(e=>({...e,x:[...e.x],y:[...e.y]}));
+  buildDataRows();
+  runCalc();
+}
+
+function buildEvCards(){
+  document.getElementById('evCardGrid').innerHTML=EV.map((e,i)=>`
+    <div class="ev-card">
+      <div class="ev-name"><span class="ev-dot" style="background:${COLORS[i]}"></span>${e.name}</div>
+      <div class="ev-stat"><span class="badge-in" style="font-size:9px;padding:1px 5px">x</span> ฿${e.x[0]}M · ${e.x[1]}kWh · ${e.x[2]}ชม.</div>
+      <div class="ev-stat" style="margin-top:2px"><span class="badge-out" style="font-size:9px;padding:1px 5px">y</span> <span class="ev-val">${e.y[0]}</span>กม. · <span class="ev-val">${e.y[1]}</span>kW · ${'★'.repeat(e.y[2])}</div>
+    </div>`).join('');
+}
+
+function buildDataRows(){
+  document.getElementById('dataRows').innerHTML=EV.map((e,i)=>`
+    <div class="ev-row-edit">
+      <div class="row-name"><span class="ev-dot" style="background:${COLORS[i]}"></span>${e.name}</div>
+      ${e.x.map((v,c)=>`<input type="number" class="cell-in" id="x${i}_${c}" value="${v}" step="0.001">`).join('')}
+      ${e.y.map((v,c)=>`<input type="number" class="cell-in" id="y${i}_${c}" value="${v}" step="1">`).join('')}
+    </div>`).join('');
+}
+
+function renderAll(){
+  if(!RES)return;
+  const {cem,sigma,omega,wi,rank,ideal}=RES;
+  const order=[...Array(N).keys()].sort((a,b)=>wi[b]-wi[a]);
+  const maxW=Math.max(...wi);
+
+  // CEM matrix
+  let h=`<table class="mat-table"><thead><tr><th>DMU_i \\ j</th>${EV.map(e=>`<th>${e.name.split(' ').pop()}</th>`).join('')}</tr></thead><tbody>`;
+  cem.forEach((row,i)=>{
+    h+=`<tr><td><span class="ev-dot" style="background:${COLORS[i]};display:inline-block;margin-right:5px"></span>${EV[i].name}</td>`;
+    row.forEach((v,j)=>{
+      const cls=i===j?'cell-diag':v>=0.78?'cell-hi':v<=0.42?'cell-lo':'';
+      h+=`<td class="${cls}">${f4(v)}</td>`;
+    });
+    h+=`</tr>`;
+  });
+  h+=`</tbody></table>`;
+  document.getElementById('cemMat').innerHTML=h;
+
+  // Weights table
+  const maxO=Math.max(...omega);
+  h=`<table class="mat-table"><thead><tr><th>Criterion j</th>${EV.map(e=>`<th>${e.name.split(' ').pop()}</th>`).join('')}</tr></thead><tbody>`;
+  h+=`<tr><td>σ_j</td>${sigma.map(v=>`<td>${f4(v)}</td>`).join('')}</tr>`;
+  h+=`<tr><td><strong>ω_j</strong></td>${omega.map(v=>`<td><strong>${f4(v)}</strong></td>`).join('')}</tr>`;
+  h+=`<tr><td style="font-size:10px;color:var(--color-text-secondary)">relative</td>${omega.map(v=>`<td><div class="wt-bar-bg"><div class="wt-bar-fg" style="width:${(v/maxO*100).toFixed(0)}%"></div></div></td>`).join('')}</tr>`;
+  h+=`</tbody></table>`;
+  document.getElementById('wtTable').innerHTML=h;
+
+  // Summary metrics
+  document.getElementById('summaryMets').innerHTML=`
+    <div class="summary-met"><div class="summary-lbl">อันดับ 1 (แนะนำ)</div><div class="summary-val" style="font-size:14px">${EV[order[0]].name}</div><div class="summary-sub">w = ${f4(wi[order[0]])}</div></div>
+    <div class="summary-met"><div class="summary-lbl">อันดับสุดท้าย</div><div class="summary-val" style="font-size:14px">${EV[order[N-1]].name}</div><div class="summary-sub">w = ${f4(wi[order[N-1]])}</div></div>
+    <div class="summary-met"><div class="summary-lbl">ช่วง w_i</div><div class="summary-val">${f4(Math.min(...wi))}</div><div class="summary-sub">– ${f4(maxW)}</div></div>
+    <div class="summary-met"><div class="summary-lbl">DMU / criteria</div><div class="summary-val">${N}</div><div class="summary-sub">3 inputs · 3 outputs</div></div>`;
+
+  // Rank list
+  document.getElementById('rankList').innerHTML=order.map(i=>{
+    const rk=rank[i], pc=(wi[i]/maxW*100).toFixed(1);
+    const numCls=rk===1?'r1':rk===2?'r2':rk===3?'r3':'';
+    const top=rk===1?'top1':'';
+    return `<div class="rank-item ${top}">
+      <div class="rank-num ${numCls}">${rk}</div>
+      <div class="rank-name"><span class="ev-dot" style="background:${COLORS[i]}"></span>${EV[i].name}</div>
+      <div class="rank-wi">${f4(wi[i])}</div>
+      <div><div class="score-bar-bg"><div class="score-bar-fg" style="width:${pc}%;background:${COLORS[i]}"></div></div><div style="font-size:10px;color:var(--color-text-secondary);margin-top:2px">${pc}%</div></div>
+      <div class="rank-self">RC_ii<br>${f4(cem[i][i])}</div>
+    </div>`;
+  }).join('');
+
+  // Deep select
+  const sel=document.getElementById('deepSel');
+  sel.innerHTML=order.map(i=>`<option value="${i}">อันดับ ${rank[i]}: ${EV[i].name}</option>`).join('');
+  renderDeep();
+  renderRec(order);
+}
+
+function renderDeep(){
+  if(!RES)return;
+  const {cem,omega,wi,rank,ideal}=RES;
+  const i=+document.getElementById('deepSel').value;
+  const e=EV[i];
+  const {xmin,xmax,ymin,ymax}=ideal;
+  const iNames=['ราคา (ล้านบาท)','พลังงาน (kWh)','เวลาชาร์จ (ชม.)'];
+  const oNames=['ระยะทาง (กม.)','กำลัง (kW)','NCAP'];
+
+  let h=`<div class="deep-grid">`;
+  h+=`<div><div class="card-title" style="margin-bottom:.6rem">Inputs — ยิ่งน้อยยิ่งดี</div>`;
+  iNames.forEach((nm,c)=>{
+    const v=e.x[c],mn=xmin[c],mx=xmax[c];
+    const pct=mx>mn?((v-mn)/(mx-mn)*100).toFixed(0):50;
+    const good=v<=mn+(mx-mn)*.4;
+    h+=`<div class="bar-item"><div class="bar-label"><span>${nm}</span><span style="color:${good?'#0F6E56':'#A32D2D'}">${v}</span></div>
+      <div class="bar-bg"><div class="bar-fg" style="width:${pct}%;background:${good?'#1D9E75':'#D85A30'}"></div></div></div>`;
+  });
+  h+=`</div><div><div class="card-title" style="margin-bottom:.6rem">Outputs — ยิ่งมากยิ่งดี</div>`;
+  oNames.forEach((nm,r)=>{
+    const v=e.y[r],mn=ymin[r],mx=ymax[r];
+    const pct=mx>mn?((v-mn)/(mx-mn)*100).toFixed(0):50;
+    const good=v>=mn+(mx-mn)*.6;
+    h+=`<div class="bar-item"><div class="bar-label"><span>${nm}</span><span style="color:${good?'#0F6E56':'#A32D2D'}">${v}</span></div>
+      <div class="bar-bg"><div class="bar-fg" style="width:${pct}%;background:${good?'#1D9E75':'#D85A30'}"></div></div></div>`;
+  });
+  h+=`</div></div>`;
+
+  h+=`<div class="card-title" style="margin:.75rem 0 .5rem">RC_ij — ถูกประเมินโดยรุ่นอื่น</div><div class="rc-grid">`;
+  EV.forEach((ev,j)=>{
+    const v=cem[i][j];
+    const col=v>=0.75?'#0F6E56':v>=0.52?'#185FA5':'#A32D2D';
+    h+=`<div class="rc-cell"><div class="rc-cell-name">${ev.name.split(' ')[0]}</div><div class="rc-cell-val" style="color:${col}">${v.toFixed(3)}</div></div>`;
+  });
+  h+=`</div>`;
+  document.getElementById('deepOut').innerHTML=h;
+}
+
+function renderRec(order){
+  const {wi,rank,ideal}=RES;
+  const topAll=order.slice(0,2);
+  const topAfford=order.filter(i=>EV[i].x[0]<1.0).slice(0,2);
+  const topRange=order.filter(i=>EV[i].y[0]>=500).slice(0,2);
+  const topSafe=order.filter(i=>EV[i].y[2]===5).slice(0,2);
+  function evPills(arr){return arr.map(i=>`<div class="rec-name"><span class="ev-dot" style="background:${COLORS[i]}"></span>${EV[i].name}</div>`).join('')}
+  document.getElementById('recGrid').innerHTML=[
+    {icon:'🏆',title:'DEA แนะนำ',arr:topAll,note:'ประสิทธิภาพรวมสูงสุดจากทุก criteria'},
+    {icon:'💰',title:'ราคาประหยัด',arr:topAfford,note:'ราคาต่ำกว่า 1 ล้านบาท และ DEA สูง'},
+    {icon:'🛣',title:'ระยะทางไกล',arr:topRange,note:'ระยะทางต่อชาร์จ ≥ 500 กม.'},
+    {icon:'🛡',title:'ความปลอดภัย',arr:topSafe,note:'NCAP 5 ดาว และ DEA score สูง'},
+  ].map(r=>`<div class="rec-card"><div class="rec-title">${r.title}</div>${evPills(r.arr)}<div class="rec-note">${r.note}</div></div>`).join('');
+}
+
+function exportCSV(){
+  if(!RES)return;
+  const {wi,rank,cem,omega}=RES;
+  const order=[...Array(N).keys()].sort((a,b)=>wi[b]-wi[a]);
+  let csv='\uFEFFอันดับ,รุ่น EV,'+omega.map((_,j)=>`w${j+1}*RC${j+1}`).join(',')+',w_i,RC_ii\n';
+  order.forEach(i=>{csv+=`${rank[i]},${EV[i].name},`+omega.map((w,j)=>(w*cem[i][j]).toFixed(4)).join(',')+`,${wi[i].toFixed(4)},${cem[i][i].toFixed(4)}\n`;});
+  const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})),download:'EV_DEA.csv'});
+  a.click();
+}
+
+function go(p){
+  [0,1,2,3,4].forEach(i=>{
+    document.getElementById('pg'+i).classList.toggle('on',i===p);
+    document.getElementById('nb'+i).classList.toggle('on',i===p);
+  });
+}
+
+buildEvCards();
+buildDataRows();
+runCalc();
+</script>
